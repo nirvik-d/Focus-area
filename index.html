@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>Focus Area</title>
+    <link rel="stylesheet" href="./src/style.css" />
+
+    <!-- Load Calcite components from CDN -->
+    <script
+      type="module"
+      src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"
+    ></script>
+
+    <!-- Load the ArcGIS Maps SDK for JavaScript -->
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.33/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.33/"></script>
+
+    <!-- Load Map components from CDN-->
+    <script
+      type="module"
+      src="https://js.arcgis.com/4.33/map-components/"
+    ></script>
+  </head>
+
+  <body>
+    <arcgis-scene
+      basemap="satellite"
+      ground="world-elevation"
+      camera-position="11.57879, 48.1346375, 865"
+      camera-tilt="57"
+      camera-heading="321"
+    >
+      <arcgis-zoom position="top-left"></arcgis-zoom>
+      <arcgis-navigation-toggle position="top-left"></arcgis-navigation-toggle>
+      <arcgis-compass position="top-left"> </arcgis-compass>
+    </arcgis-scene>
+    <calcite-block expanded id="styleControl" label="Focus area style">
+      Focus area style
+      <calcite-segmented-control>
+        <calcite-segmented-control-item value="dark"
+          >Dark</calcite-segmented-control-item
+        >
+        <calcite-segmented-control-item value="bright" checked
+          >Bright</calcite-segmented-control-item
+        >
+        <calcite-segmented-control-item value="none"
+          >None</calcite-segmented-control-item
+        >
+      </calcite-segmented-control>
+    </calcite-block>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
