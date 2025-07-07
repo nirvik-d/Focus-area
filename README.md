@@ -11,15 +11,11 @@ A 3D visualization tool built with ArcGIS Maps SDK for JavaScript and Calcite We
 
 *1. Main application with no focus area*
 
-<img width="959" alt="image" src="https://github.com/user-attachments/assets/focus-area-main.png"/>
+![image](https://github.com/user-attachments/assets/c9bf214b-90c3-4cad-bdd7-2de15976af85)
 
-*2. Focus area with Dark style*
+*2. Focus area with Bright style*
 
-<img width="959" alt="image" src="https://github.com/user-attachments/assets/focus-area-dark.png"/>
-
-*3. Focus area with Bright style*
-
-<img width="959" alt="image" src="https://github.com/user-attachments/assets/focus-area-bright.png"/>
+![image](https://github.com/user-attachments/assets/aff550d4-78ba-4355-806e-128336083a73)
 
 ## Prerequisites
 
