@@ -1,25 +1,27 @@
-const [
-  SketchViewModel,
-  SimpleFillSymbol,
-  Graphic,
-  Polygon,
-  Collection,
-  GraphicsLayer,
-  IntegratedMeshLayer,
-  FocusArea,
-] = await $arcgis.import([
-  "@arcgis/core/widgets/Sketch/SketchViewModel.js",
-  "@arcgis/core/symbols/SimpleFillSymbol.js",
-  "@arcgis/core/Graphic.js",
-  "@arcgis/core/geometry/Polygon.js",
-  "@arcgis/core/core/Collection.js",
-  "@arcgis/core/layers/GraphicsLayer.js",
-  "@arcgis/core/layers/IntegratedMeshLayer.js",
-  "@arcgis/core/effects/FocusArea.js",
-]);
+import "./style.css";
+
+import "@arcgis/map-components/components/arcgis-scene";
+import "@arcgis/map-components/components/arcgis-zoom";
+import "@arcgis/map-components/components/arcgis-navigation-toggle";
+import "@arcgis/map-components/components/arcgis-compass";
+import "@esri/calcite-components/components/calcite-block";
+import "@esri/calcite-components/components/calcite-segmented-control";
+import "@esri/calcite-components/components/calcite-segmented-control-item";
+
+import IntegratedMeshLayer from "@arcgis/core/layers/IntegratedMeshLayer";
+import FocusArea from "@arcgis/core/effects/FocusArea";
+import Polygon from "@arcgis/core/geometry/Polygon";
+import Collection from "@arcgis/core/core/Collection";
+import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
+import Graphic from "@arcgis/core/Graphic";
+import SimpleFillSymbol from "@arcgis/core/symbols/SimpleFillSymbol";
+import SketchViewModel from "@arcgis/core/widgets/Sketch/SketchViewModel";
 
 // Get the SceneView element from the DOM
-const sceneView = document.querySelector("arcgis-scene");
+const scene: HTMLArcgisSceneElement | null = document.querySelector("arcgis-scene");
+if (!scene) {
+  throw new Error("Scene element not found");
+}
 
 // Create an IntegratedMeshLayer for 3D city data
 // This layer will show the 3D mesh data of Munich
@@ -28,15 +30,17 @@ const meshLayer = new IntegratedMeshLayer({
 });
 
 // Wait for the view to be ready before adding layers
-await sceneView.viewOnReady();
-sceneView.map.add(meshLayer);
+await scene.viewOnReady();
+if(!scene.map){
+  throw new Error("Map not found");
+}
+scene.map.add(meshLayer);
 
 // Define the initial focus area geometry
 // This creates a polygon that will be used as the focus area
 const initialFocusAreaGeometry = new Polygon({
   // Spatial reference for Web Mercator
   spatialReference: {
-    latestWkid: 3857,
     wkid: 102100,
   },
   rings: [
@@ -64,8 +68,8 @@ const focusArea = new FocusArea({
 });
 
 // Add the focus area to the view
-sceneView.focusAreas.areas.add(focusArea);
-sceneView.focusAreas.style = "bright";
+scene.focusAreas.areas.add(focusArea);
+scene.focusAreas.style = "bright";
 
 // Add a segmented control to the UI to allow users to switch between different focus area styles
 const styleControl = document.getElementsByTagName(
@@ -74,10 +78,16 @@ const styleControl = document.getElementsByTagName(
 styleControl.addEventListener("calciteSegmentedControlChange", (event) => {
   const selectedStyleValue = event.target.selectedItem.value;
   if (selectedStyleValue === "none") {
-    sceneView.focusAreas.areas.at(0).enabled = false;
+    const firstArea = scene.focusAreas.areas.at(0);
+    if (firstArea) {
+      firstArea.enabled = false;
+    }
   } else {
-    sceneView.focusAreas.style = event.target.selectedItem.value;
-    sceneView.focusAreas.areas.at(0).enabled = true;
+    scene.focusAreas.style = event.target.selectedItem.value;
+    const firstArea = scene.focusAreas.areas.at(0);
+    if (firstArea) {
+      firstArea.enabled = true;
+    }
   }
 });
 
@@ -90,7 +100,7 @@ const sketchLayer = new GraphicsLayer({
 
 // Create a Graphic to display the focus area geometry
 const sketchGraphic = new Graphic({
-  geometry: sceneView.focusAreas.areas.at(0).geometries.at(0),
+  geometry: scene.focusAreas.areas.at(0)?.geometries.at(0),
   symbol: new SimpleFillSymbol({
     color: [255, 128, 128, 1 / 255],
   }),
@@ -98,17 +108,17 @@ const sketchGraphic = new Graphic({
 
 // Add the graphic to the sketch layer
 sketchLayer.graphics.add(sketchGraphic);
-sceneView.map.add(sketchLayer);
+scene.map.add(sketchLayer);
 
 // Function to update the focus area geometry
-function updateFocusArea(event) {
+function updateFocusArea(event: any) {
   focusArea.geometries = new Collection([event.graphics.at(0).geometry]);
 }
 
 // Create a SketchViewModel to handle sketching
 const sketchViewModel = new SketchViewModel({
   layer: sketchLayer,
-  view: sceneView.view,
+  view: scene.view,
 });
 
 // Add an event listener to the sketch view model to update the focus area geometry
