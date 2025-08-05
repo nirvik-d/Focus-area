@@ -24,26 +24,24 @@ A 3D visualization tool built with ArcGIS Maps SDK for JavaScript and Calcite We
 
 ## Project Setup
 
-1.  **Initialize Project**
+### Initialize Project
 
-    ```bash
-    # Create a new Vite project
-    npm create vite@latest
-    ```
+```bash
+# Create a new Vite project
+npm create vite@latest
+```
 
-    Follow the instructions on screen to initialize the project.
+Follow the instructions on screen to initialize the project.
 
-2.  **Install Dependencies**
+### Install Dependencies
 
-    ```bash
-    npm install
-    ```
+```bash
+npm install @arcgis/map-components
+```
 
 ## Code Structure
 
 ### HTML Structure
-
-The HTML file sets up the basic structure for the ArcGIS web application:
 
 ```html
 <!DOCTYPE html>
@@ -55,29 +53,34 @@ The HTML file sets up the basic structure for the ArcGIS web application:
       content="initial-scale=1,maximum-scale=1,user-scalable=no"
     />
     <title>Focus Area</title>
-    <link rel="stylesheet" href="./src/style.css" />
-    <script type="module" src="https://js.arcgis.com/calcite-components/3.2.1/calcite.esm.js"></script>
-    <link rel="stylesheet" href="https://js.arcgis.com/4.33/esri/themes/light/main.css" />
-    <script src="https://js.arcgis.com/4.33/"></script>
-    <script type="module" src="https://js.arcgis.com/4.33/map-components/"></script>
   </head>
   <body>
-    <arcgis-scene item-id="d6eefc2b1e984e1eaf1c290588a52c55">
+    <arcgis-scene
+      basemap="satellite"
+      ground="world-elevation"
+      camera-position="11.57879, 48.1346375, 865"
+      camera-tilt="57"
+      camera-heading="321"
+    >
       <arcgis-zoom position="top-left"></arcgis-zoom>
       <arcgis-navigation-toggle position="top-left"></arcgis-navigation-toggle>
-      <arcgis-compass position="top-left"></arcgis-compass>
-      <arcgis-placement position="top-right">
-        <div id="menu" class="esri-widget">
-          <h3>Focus Area</h3>
-          <calcite-segmented-control>
-            <calcite-segmented-control-item value="bright" selected>Bright</calcite-segmented-control-item>
-            <calcite-segmented-control-item value="dark">Dark</calcite-segmented-control-item>
-            <calcite-segmented-control-item value="none">None</calcite-segmented-control-item>
-          </calcite-segmented-control>
-        </div>
-      </arcgis-placement>
+      <arcgis-compass position="top-left"> </arcgis-compass>
     </arcgis-scene>
-    <script type="module" src="./src/main.js"></script>
+    <calcite-block expanded id="styleControl" label="Focus area style">
+      Focus area style
+      <calcite-segmented-control>
+        <calcite-segmented-control-item value="dark"
+          >Dark</calcite-segmented-control-item
+        >
+        <calcite-segmented-control-item value="bright" checked
+          >Bright</calcite-segmented-control-item
+        >
+        <calcite-segmented-control-item value="none"
+          >None</calcite-segmented-control-item
+        >
+      </calcite-segmented-control>
+    </calcite-block>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
 ```
@@ -87,6 +90,10 @@ The HTML file sets up the basic structure for the ArcGIS web application:
 The CSS file provides styling for the map view and UI elements:
 
 ```css
+@import "https://js.arcgis.com/calcite-components/3.2.1/calcite.css";
+@import "https://js.arcgis.com/4.33/esri/themes/light/main.css";
+@import "https://js.arcgis.com/4.33/map-components/main.css";
+
 html,
 body {
   width: 100%;
@@ -107,53 +114,62 @@ body {
 }
 ```
 
-### JavaScript Implementation
+### TypeScript Implementation
 
-1. **Module Imports**
+1. **Import the required modules**
 
-```javascript
-const [
-  SketchViewModel,
-  SimpleFillSymbol,
-  Graphic,
-  Polygon,
-  Collection,
-  GraphicsLayer,
-  IntegratedMeshLayer,
-  FocusArea,
-] = await $arcgis.import([
-  "@arcgis/core/widgets/Sketch/SketchViewModel.js",
-  "@arcgis/core/symbols/SimpleFillSymbol.js",
-  "@arcgis/core/Graphic.js",
-  "@arcgis/core/geometry/Polygon.js",
-  "@arcgis/core/core/Collection.js",
-  "@arcgis/core/layers/GraphicsLayer.js",
-  "@arcgis/core/layers/IntegratedMeshLayer.js",
-  "@arcgis/core/effects/FocusArea.js",
-]);
+```typescript
+import "./style.css";
+
+import "@arcgis/map-components/components/arcgis-scene";
+import "@arcgis/map-components/components/arcgis-zoom";
+import "@arcgis/map-components/components/arcgis-navigation-toggle";
+import "@arcgis/map-components/components/arcgis-compass";
+import "@esri/calcite-components/components/calcite-block";
+import "@esri/calcite-components/components/calcite-segmented-control";
+import "@esri/calcite-components/components/calcite-segmented-control-item";
+
+import IntegratedMeshLayer from "@arcgis/core/layers/IntegratedMeshLayer";
+import FocusArea from "@arcgis/core/effects/FocusArea";
+import Polygon from "@arcgis/core/geometry/Polygon";
+import Collection from "@arcgis/core/core/Collection";
+import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
+import Graphic from "@arcgis/core/Graphic";
+import SimpleFillSymbol from "@arcgis/core/symbols/SimpleFillSymbol";
+import SketchViewModel from "@arcgis/core/widgets/Sketch/SketchViewModel";
 ```
 
-2. **Scene Setup**
+2. **Get the scene view and add the 3D mesh layer to it**
 
-```javascript
-const sceneView = document.querySelector("arcgis-scene");
+```typescript
+// Get the SceneView element from the DOM
+const scene: HTMLArcgisSceneElement | null = document.querySelector("arcgis-scene");
+if (!scene) {
+  throw new Error("Scene element not found");
+}
+
+// Create an IntegratedMeshLayer for 3D city data
+// This layer will show the 3D mesh data of Munich
 const meshLayer = new IntegratedMeshLayer({
   url: "https://tiles-eu1.arcgis.com/7cCya5lpv5CmFJHv/arcgis/rest/services/Munich_3D_Mesh_City_Mapper_2_SURE_43/SceneServer",
 });
 
-await sceneView.viewOnReady();
-sceneView.map.add(meshLayer);
+// Wait for the view to be ready before adding layers
+await scene.viewOnReady();
+if(!scene.map){
+  throw new Error("Map not found");
+}
+scene.map.add(meshLayer);
 ```
 
-3. **Focus Area Implementation**
+3. **Define the initial focus area geometry and create a FocusArea instance. Add the focus area to the view and set the style**
 
-```javascript
+```typescript
 // Define the initial focus area geometry
 // This creates a polygon that will be used as the focus area
 const initialFocusAreaGeometry = new Polygon({
   // Spatial reference for Web Mercator
   spatialReference: {
-    latestWkid: 3857,
     wkid: 102100,
   },
   rings: [
@@ -172,16 +188,22 @@ const initialFocusAreaGeometry = new Polygon({
 });
 
 // Create a FocusArea instance
+// This will be used to apply the focus area effect to the 3D mesh data
 const focusArea = new FocusArea({
   title: "Focus Area",
   id: "focus-area0",
+  outline: { color: [255, 128, 128, 0.55] },
   geometries: new Collection([initialFocusAreaGeometry]),
 });
 
 // Add the focus area to the view
-sceneView.focusAreas.areas.add(focusArea);
-sceneView.focusAreas.style = "bright";
+scene.focusAreas.areas.add(focusArea);
+scene.focusAreas.style = "bright";
+```
 
+4. **Add a segmented control to the UI to allow users to switch between different focus area styles**
+
+```typescript
 // Add a segmented control to the UI to allow users to switch between different focus area styles
 const styleControl = document.getElementsByTagName(
   "calcite-segmented-control"
@@ -189,17 +211,24 @@ const styleControl = document.getElementsByTagName(
 styleControl.addEventListener("calciteSegmentedControlChange", (event) => {
   const selectedStyleValue = event.target.selectedItem.value;
   if (selectedStyleValue === "none") {
-    sceneView.focusAreas.areas.at(0).enabled = false;
+    const firstArea = scene.focusAreas.areas.at(0);
+    if (firstArea) {
+      firstArea.enabled = false;
+    }
   } else {
-    sceneView.focusAreas.style = event.target.selectedItem.value;
-    sceneView.focusAreas.areas.at(0).enabled = true;
+    scene.focusAreas.style = event.target.selectedItem.value;
+    const firstArea = scene.focusAreas.areas.at(0);
+    if (firstArea) {
+      firstArea.enabled = true;
+    }
   }
 });
+
 ```
 
-4. **Drawing Tools**
+5. **Create a GraphicsLayer to display the focus area geometry and add it to the scene. Add a function to update the focus area geometry for different user selected styles**
 
-```javascript
+```typescript
 // Create a GraphicsLayer to display the focus area geometry
 const sketchLayer = new GraphicsLayer({
   elevationInfo: {
@@ -209,7 +238,7 @@ const sketchLayer = new GraphicsLayer({
 
 // Create a Graphic to display the focus area geometry
 const sketchGraphic = new Graphic({
-  geometry: sceneView.focusAreas.areas.at(0).geometries.at(0),
+  geometry: scene.focusAreas.areas.at(0)?.geometries.at(0),
   symbol: new SimpleFillSymbol({
     color: [255, 128, 128, 1 / 255],
   }),
@@ -217,21 +246,17 @@ const sketchGraphic = new Graphic({
 
 // Add the graphic to the sketch layer
 sketchLayer.graphics.add(sketchGraphic);
-sceneView.map.add(sketchLayer);
-```
+scene.map.add(sketchLayer);
 
-5. **Sketch View Model and update focus area geometry**
-
-```javascript
 // Function to update the focus area geometry
-function updateFocusArea(event) {
+function updateFocusArea(event: any) {
   focusArea.geometries = new Collection([event.graphics.at(0).geometry]);
 }
 
 // Create a SketchViewModel to handle sketching
 const sketchViewModel = new SketchViewModel({
   layer: sketchLayer,
-  view: sceneView.view,
+  view: scene.view,
 });
 
 // Add an event listener to the sketch view model to update the focus area geometry
@@ -242,13 +267,14 @@ sketchViewModel.on("update", updateFocusArea);
 
 1. **Development Server**
 
-   ```bash
-   npm run dev
-   ```
+```bash
+npm run dev
+```
 
-   This will start the development server at `http://localhost:5173`
+This will start the development server at `http://localhost:5173`
 
 2. **Build for Production**
-   ```bash
-   npm run build
-   ```
+
+```bash
+npm run build
+```
